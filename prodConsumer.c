@@ -53,21 +53,28 @@ int sacar(buffer* buffer) {
 
 void* producer_routine(void* buffer_void) {
     
-    buffer b = *(buffer*) buffer_void;
+    buffer* b = (buffer*) buffer_void;
     srand(time(NULL));   // Initialization, should only be called once.
     int r; 
     while(1) {
         r = rand() % 101;
-        meter(r, &b);
+        meter(r, b);
     }
     return 0;
 }
 
 
 void* consumer_routine(void* buffer_void) {
-    buffer b = *(buffer*) buffer_void;
+    // since buffer it's a shared resource initialized in the main
+    // we don't need the "value" stored in that memory address, we need
+    // the pointer to the object.
+    // when we do *(buffer*) we're making a copy of that memory, 
+    // with (buffer*) we're just casting the void* pointer to a buffer* pointer;
+    buffer* b = (buffer*) buffer_void;
     while(1) {
-        sacar(&b);
+        // we don't need & since b is already a pointer. More exactly it's the memory address of the buffer
+        // we created in the main process.
+        sacar(b);
     }
     return 0;
 }
