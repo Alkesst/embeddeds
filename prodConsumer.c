@@ -88,7 +88,8 @@ void buffer_init(buffer* buffer) {
     pthread_cond_init(&buffer->buffer_not_empty, NULL);
     pthread_mutex_init(&buffer->mutex, NULL);
 }
-
+// * accedo a la región de memoria a la que apunta
+// & obtiene la direccion de memoria
 int main() {
     pthread_t productor, consumidor;
     buffer b;
