@@ -10,15 +10,13 @@
 typedef struct {
     pthread_mutex_t mutex;
     pthread_cond_t bath_is_full;
-    pthread_cond_t bath_is_empty;
     int girls, bois;
 } MutexStructure;
 
 
-void entering(int, MutexStructure*);
-void exiting(int, MutexStructure*);
-void* thread_process_enter(void*);
-void* thread_process_exit(void*);
+void going_to_bathroom(int, MutexStructure*);
+void* thread_process(void*);
+int condicion_bathroom(int, MutexStructure*);
 
 int main() {
     MutexStructure* mutex = malloc(sizeof(MutexStructure));
@@ -30,15 +28,9 @@ int main() {
     srand(time(NULL));   // Initialization, should only be called once.
     pthread_mutex_init(&mutex->mutex, NULL);
     pthread_cond_init(&mutex->bath_is_full, NULL);
-    pthread_cond_init(&mutex->bath_is_empty, NULL);
 
-    for(long t = 0; t < THREADS / 2; t++) {
-        return_code = pthread_create(&threads[2 * t], NULL, thread_process_enter, mutex);
-        if(return_code) {
-            printf("Exiting beccause something went wrong creating a thread");
-            exit(-1);
-        }
-        return_code = pthread_create(&threads[2 * t + 1], NULL, thread_process_exit, mutex);
+    for(long t = 0; t < THREADS; t++) {
+        return_code = pthread_create(&threads[t], NULL, thread_process, mutex);
         if(return_code) {
             printf("Exiting beccause something went wrong creating a thread");
             exit(-1);
@@ -49,10 +41,11 @@ int main() {
         pthread_join(threads[t], NULL);
     }
     free(mutex);
+
     return 0;
 }
 
-void entering(int is_girl, MutexStructure* mutex) {
+void going_to_bathroom(int is_girl, MutexStructure* mutex) {
     int r = rand() % 500;
     if(is_girl) {
         printf("A girl wants to enter the bathroom.\n");
@@ -60,50 +53,35 @@ void entering(int is_girl, MutexStructure* mutex) {
         printf("A boi wants to enter the bathroom.\n");
     }
     pthread_mutex_lock(&mutex->mutex);
-    while(mutex->girls == 1 || mutex->bois == 5) {
+    while(condicion_bathroom(is_girl, mutex)) {
         printf("A %d is waiting to enter\n", is_girl);
         pthread_cond_wait(&mutex->bath_is_full, &mutex->mutex);
     }
     (is_girl)? mutex->girls++ : mutex->bois++;
-    pthread_cond_signal(&mutex->bath_is_empty);
-    printf("A %d is entering\n", is_girl);
+    printf("Estoy meando bro xD junto a otras %d personas\n", (is_girl)? mutex->girls : mutex->bois);
     pthread_mutex_unlock(&mutex->mutex);
     usleep(r * 1000);
-}
-
-void exiting(int is_girl, MutexStructure* mutex) {
-    int r = rand() % 500;
-    if(is_girl) {
-        printf("A girl wants to exit the bathroom.\n");
-    } else {
-        printf("A boi wants to exit the bathroom.\n");
-    }
     pthread_mutex_lock(&mutex->mutex);
-    while(mutex->girls == 0 || mutex->bois == 0) {
-        printf("A %d is waiting to exit\n", is_girl);
-        pthread_cond_wait(&mutex->bath_is_empty, &mutex->mutex);
-    }
+    printf("A %d is exiting\n", is_girl);
     (is_girl)? mutex->girls-- : mutex->bois--;
     pthread_cond_signal(&mutex->bath_is_full);
-    printf("A %d is exiting\n", is_girl);
     pthread_mutex_unlock(&mutex->mutex);
     usleep(r * 1000);
+} 
+
+void* thread_process(void* mutex_void) {
+    MutexStructure* mutex = (MutexStructure*) mutex_void;
+    int t;
+    while(1) {
+        t = rand() % 2;
+        going_to_bathroom(t, mutex);
+    }
+} 
+
+int condicion_bathroom(int is_girl, MutexStructure* mutex) {
+    if(is_girl) {
+        return mutex->girls == 1 || mutex->bois > 0;
+    } else {
+        return mutex->bois == 5 || mutex->girls > 0;
+    }
 }
-
-void* thread_process_enter(void* mutex_void) {
-    MutexStructure* mutex = (MutexStructure*) mutex_void;
-    int t = 0;
-    while(1) {
-        entering(t % 2, mutex);
-        t++;
-    }
-} 
-
-void* thread_process_exit(void* mutex_void) {
-    MutexStructure* mutex = (MutexStructure*) mutex_void;
-    int t = 0;
-    while(1) {
-        exiting(t % 2, mutex);
-        t++;
-    }
-} 
