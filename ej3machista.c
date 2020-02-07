@@ -1,7 +1,6 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <semaphore.h>
 #include <unistd.h>
 #include <time.h>
 #include <unistd.h>
