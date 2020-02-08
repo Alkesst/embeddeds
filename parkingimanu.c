@@ -47,7 +47,7 @@ void* parking_monovol(void* argg) {
         sem_post(&entrada);
         sleep(rand() % 4);
         printf("El monovolumen %d esta saliendo del prakign\n", id);
-        kill(getpid(), MONOVOL); // mando la senyal maxima de tiempo real que podemos mandar. Senyal del SO.
+        kill(getpid(), SALE_MONOVOL); // mando la senyal maxima de tiempo real que podemos mandar. Senyal del SO.
         sleep(2);
     }
     pthread_exit(NULL);
@@ -68,10 +68,10 @@ void* controlador() {
             monovols++;
         } else if (info == COCHE) {
             esperando[0] = 1;
-            printf("praking yeno \n");
+            printf("praking yeno (Coches: %d) (Monovols: %d)\n", coches, monovols);
         } else if (info == MONOVOL) {
             esperando[1] = 1;
-            printf("praking yeno \n");
+            printf("praking yeno (Coches: %d) (Monovols: %d)\n", coches, monovols);
         }
 
         if(info == SALE_COCHE) {
