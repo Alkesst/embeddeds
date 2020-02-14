@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <errno.h>
+#include <sys/mman.h>
 
 // CONFIGS
 
@@ -35,11 +36,12 @@ void* sub_task();
 // we're not using 
 
 int main() {
+    mlockall(MCL_CURRENT | MCL_FUTURE);
     pthread_t a, b;
-    create_thread(&a, add_task, SCHED_RR, 26);
-    create_thread(&b, sub_task, SCHED_RR, 27);
+    create_thread(&a, add_task, SCHED_FIFO, 26);
+    create_thread(&b, sub_task, SCHED_FIFO, 26);
     // highest priority to the main thread
-    change_priority(SCHED_RR, 30);
+    change_priority(SCHED_FIFO, 30);
 
     pthread_join(a, NULL);
     pthread_join(b, NULL);
