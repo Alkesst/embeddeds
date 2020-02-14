@@ -18,7 +18,7 @@ static int create_timer(timer_t* timer, int signo) {
     return timer_create(CLOCK_MONOTONIC, &sigev, timer);
 }
 
-static int activate_timer(timer_t* timer, time_t secs, long nsec) {
+static int activate_timer(timer_t timer, time_t secs, long nsec) {
     struct itimerspec it;
     it.it_interval.tv_sec = secs;
     it.it_interval.tv_nsec = nsec;
@@ -117,7 +117,7 @@ void* torno_entrada(void* args) {
     sigemptyset(&sigset_thread);
     sigaddset(&sigset_thread, TIMER_TORNO1);
     create_timer(&timer, TIMER_TORNO1);
-    activate_timer(&timer, stru->entrada.periodo, 0);
+    activate_timer(timer, stru->entrada.periodo, 0);
 
     while(1) {
         int info;
@@ -143,7 +143,7 @@ void* torno_salida(void* args) {
     sigemptyset(&sigset_thread);
     sigaddset(&sigset_thread, TIMER_TORNO2);
     create_timer(&timer, TIMER_TORNO2);
-    activate_timer(&timer, stru->salida.periodo, 0);
+    activate_timer(timer, stru->salida.periodo, 0);
     while(1) {
         int info;
         sigwait(&sigset_thread, &info);
@@ -175,7 +175,7 @@ void* monitor_task(void* args) {
             stru->personas_dentro++;
             printf("HM, alguien ha entrado. Quedan %d\n", stru->personas_dentro);
             pthread_mutex_unlock(&stru->mutex);
-        } else if (info == TORNO_SALIDA) {
+        } else if (info == TORNO_SALIDA && stru->personas_dentro > 0) {
             pthread_mutex_lock(&stru->mutex);
             stru->personas_dentro--;
             printf("HM, alguien ha salido. Quedan %d\n", stru->personas_dentro);
