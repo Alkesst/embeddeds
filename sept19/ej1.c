@@ -21,8 +21,8 @@ static int activate_timer(timer_t timer, time_t secs, long nsec) {
     itspec.it_interval.tv_sec = secs;
     itspec.it_interval.tv_nsec = nsec;
     itspec.it_value.tv_sec = 0;
-    itspec.it_value.tv_sec = 1;
-    return timer_settime(timer, CLOCK_MONOTONIC, &itspec, NULL);
+    itspec.it_value.tv_nsec = 1;
+    return timer_settime(timer, 0, &itspec, NULL);
 }
 
 static inline long generate_random(pthread_mutex_t* mutex) {
